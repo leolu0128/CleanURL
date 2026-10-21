@@ -27,8 +27,8 @@
 | 平台 | 支援網域 | 淨化與轉換邏輯 |
 | :--- | :--- | :--- |
 | **YouTube** | `youtube.com`<br>`youtu.be`<br>`m.youtube.com` | • 移除 `si`、`feature`、`pp`、`kw` 等追蹤參數<br>• **保留必要參數**：`v` (影片 ID)、`t` / `start` (時間戳記)、`list` / `index` (播放清單)<br>• **Shorts 轉換（可選）**：支援將 `/shorts/{id}` 自動轉為一般播放器網址 `/watch?v={id}` |
-| **Instagram** | `instagram.com` | • 移除 `igsh`、`igshid`、`utm_*` 等會暴露分享者個人帳號的追蹤參數<br>• 保留乾淨路徑（如 `/p/xxx/`、`/reel/xxx/`、`/stories/xxx/`） |
-| **Threads** | `threads.net`<br>`threads.com` | • 移除 `xmt`、`igshid`、`utm_*` 等追蹤參數<br>• 保留乾淨貼文路徑（如 `/@user/post/xxx`） |
+| **Instagram** | `instagram.com` | • **只保留必要參數**：僅保留 `img_index`（多圖貼文的第幾張），其餘參數一律移除，包含 `igsh`、`igshid`、`dlrf`、`utm_*` 等會暴露分享者的追蹤碼，以及日後新增的未知追蹤參數<br>• 保留乾淨路徑（如 `/p/xxx/`、`/reel/xxx/`、`/stories/xxx/`）<br>• **短網址網路還原**：`/share/...` 分享短網址會展開為真實網址 |
+| **Threads** | `threads.net`<br>`threads.com` | • **只保留必要參數**：僅保留 `q`（搜尋關鍵字），其餘參數（如 `xmt`、`slof`、`igshid`）一律移除<br>• 保留乾淨貼文路徑（如 `/@user/post/xxx`）<br>• **短網址網路還原**：`/share/xxx/` 分享短網址會展開為 `/@user/post/xxx` |
 | **Facebook** | `facebook.com`<br>`m.facebook.com`<br>`fb.watch`<br>`fb.com` | • **短網址網路還原**：偵測到 `/share/p/`、`/share/r/`、`/share/v/`、`/share/` 或 `fb.watch/` 等加密分享短網址時，自動在背景發送不帶 Cookie 的輕量 HTTP 請求（含 3 秒 Timeout 與錯誤降級機制），解析跳轉後的真實貼文網址<br>• **參數清洗**：移除 `fbclid`、`mibextid`、`rdid`、`share_url`、`__cft__`、`__tn__`、`ref` 等追蹤碼<br>• **保留必要參數**：保留 `story_fbid`、`id`、`v` 等貼文與影片必要識別碼 |
 | **通用網址** | 任意網站 | • 自動清除常見跨站追蹤參數：`utm_source`、`utm_medium`、`utm_campaign`、`utm_term`、`utm_content`、`gclid`、`fbclid` |
 
@@ -38,7 +38,7 @@
 - **手動輸入 / 測試區**：提供文字輸入框，可隨時貼上包含網址的文字進行測試與轉換。
 - **最近淨化歷史紀錄**：於本機保留最近 20 筆淨化紀錄（顯示平台標籤、淨化後網址、處理時間），支援單筆點擊快速複製與一鍵清空。
 - **偏好設定開關**：
-  - 啟用 / 停用 **Facebook 短網址網路還原**
+  - 啟用 / 停用 **短網址網路還原**（Facebook / Threads / Instagram）
   - 啟用 / 停用 **YouTube Shorts 轉一般影片網址 (`/watch?v=`)**
   - 啟用 / 停用 **Android 13+ 額外顯示 Toast 提示**
 
@@ -77,7 +77,7 @@ app/src/main/
 ## 🔒 權限說明
 
 本應用程式遵循最小權限原則，僅申請以下單一權限：
-- `android.permission.INTERNET`：**僅用於**將 Facebook 加密短網址（如 `facebook.com/share/...`、`fb.watch/...`）展開還原為真實貼文網址。所有請求皆不攜帶 Cookie，且絕不收集或上傳任何使用者資料。
+- `android.permission.INTERNET`：**僅用於**將 Facebook / Threads / Instagram 的分享短網址（如 `facebook.com/share/...`、`threads.com/share/...`、`fb.watch/...`）展開還原為真實貼文網址。所有請求皆不攜帶 Cookie，且絕不收集或上傳任何使用者資料。
 
 ---
 

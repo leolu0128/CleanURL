@@ -12,7 +12,7 @@ enum class Platform(val label: String) {
 
 data class CleanOptions(
     val convertShorts: Boolean = false,
-    val expandFacebookShortLinks: Boolean = true,
+    val expandShortLinks: Boolean = true,
 )
 
 data class CleanResult(
@@ -39,8 +39,10 @@ object UrlCleaner {
     private val GENERIC_TRACKING_PREFIXES = listOf("utm_")
 
     private val YOUTUBE_KEEP = setOf("v", "t", "start", "end", "list", "index", "search_query")
-    private val INSTAGRAM_TRACKING = setOf("igsh", "igshid")
-    private val THREADS_TRACKING = setOf("xmt", "igsh", "igshid", "slof")
+    // Instagram/Threads keep-lists: content URLs need no query, and Meta keeps adding new share
+    // trackers (igsh, xmt, dlrf, ...), so anything not listed here is dropped.
+    private val INSTAGRAM_KEEP = setOf("img_index")
+    private val THREADS_KEEP = setOf("q")
     private val FACEBOOK_TRACKING = setOf(
         "mibextid", "rdid", "share_url", "ref", "refsrc", "paipv", "eav", "sfnsn",
         "_rdr", "hc_ref", "hc_location", "extid", "wtsid", "__tn__",
@@ -51,6 +53,7 @@ object UrlCleaner {
     private val INSTAGRAM_DOMAINS = listOf("instagram.com")
     private val THREADS_DOMAINS = listOf("threads.net", "threads.com")
     private val FACEBOOK_DOMAINS = listOf("facebook.com", "fb.watch", "fb.com")
+    private val SHORT_LINK_DOMAINS = FACEBOOK_DOMAINS + THREADS_DOMAINS + INSTAGRAM_DOMAINS
 
     /** Returns the first http(s) URL in [text], without trailing punctuation, or null. */
     fun extractUrl(text: String): String? {
@@ -74,11 +77,14 @@ object UrlCleaner {
         }
     }
 
-    /** True for Facebook share links whose real target can only be found by following redirects. */
-    fun isFacebookShortLink(url: String): Boolean {
+    /**
+     * True for Meta share links (Facebook, Threads, Instagram `/share/...`, `fb.watch`) whose real
+     * target can only be found by following redirects.
+     */
+    fun isShortLink(url: String): Boolean {
         val parsed = ParsedUrl.parse(url) ?: return false
         if (parsed.host.matches("fb.watch")) return true
-        return parsed.host.matchesAny(FACEBOOK_DOMAINS) && parsed.path.startsWith("/share/")
+        return parsed.host.matchesAny(SHORT_LINK_DOMAINS) && parsed.path.startsWith("/share/")
     }
 
     /** Decoded value of the first query parameter called [name], or null. */
@@ -94,8 +100,8 @@ object UrlCleaner {
 
         val cleaned = when (platform) {
             Platform.YOUTUBE -> cleanYouTube(parsed, options)
-            Platform.INSTAGRAM -> parsed.removeParams { isGenericTracking(it) || it in INSTAGRAM_TRACKING }
-            Platform.THREADS -> parsed.removeParams { isGenericTracking(it) || it in THREADS_TRACKING }
+            Platform.INSTAGRAM -> parsed.removeParams { it !in INSTAGRAM_KEEP }
+            Platform.THREADS -> parsed.removeParams { it !in THREADS_KEEP }
             Platform.FACEBOOK -> return cleanFacebook(url, parsed, options)
             Platform.GENERIC -> parsed.removeParams(::isGenericTracking)
         }

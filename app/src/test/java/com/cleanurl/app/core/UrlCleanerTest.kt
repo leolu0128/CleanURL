@@ -94,7 +94,16 @@ class UrlCleanerTest {
     }
 
     @Test
-    fun instagram_keepsUnknownParams() {
+    fun instagram_removesUnknownTrackingParams() {
+        // Real "copy link" URL: dlrf is base64 for a share identifier.
+        assertEquals(
+            "https://www.instagram.com/reel/DexDdkLu2Mt/",
+            clean("https://www.instagram.com/reel/DexDdkLu2Mt/?utm_source=ig_web_copy_link&dlrf=NTc4MTIwNjQ2YQ=="),
+        )
+    }
+
+    @Test
+    fun instagram_keepsCarouselIndex() {
         assertEquals(
             "https://www.instagram.com/p/C9abc/?img_index=2",
             clean("https://www.instagram.com/p/C9abc/?img_index=2&igsh=xyz"),
@@ -114,6 +123,18 @@ class UrlCleanerTest {
             clean("https://www.threads.com/@user/post/C9abc?xmt=AQGz&igshid=1"),
         )
         assertEquals(Platform.THREADS, UrlCleaner.clean("https://www.threads.com/@a").platform)
+    }
+
+    @Test
+    fun threads_removesUnknownParamsKeepsSearchQuery() {
+        assertEquals(
+            "https://www.threads.com/@user/post/C9abc",
+            clean("https://www.threads.com/@user/post/C9abc?xmt=AQGz&new_tracker=1"),
+        )
+        assertEquals(
+            "https://www.threads.com/search?q=kotlin",
+            clean("https://www.threads.com/search?q=kotlin&xmt=AQGz"),
+        )
     }
 
     // ---- Facebook ----
@@ -139,14 +160,44 @@ class UrlCleanerTest {
     }
 
     @Test
+    fun facebook_cleansExpandedShareTarget() {
+        // Real Location header returned for a facebook.com/share/p/ link.
+        assertEquals(
+            "https://www.facebook.com/animestory.animehk/posts/pfbid02sYHraeNenHSc6XqAC6Nsxdm3Xb9fSvquRPbaxNmTsVEbAX2921HGoN7fFyvuZjcel",
+            clean(
+                "https://www.facebook.com/animestory.animehk/posts/pfbid02sYHraeNenHSc6XqAC6Nsxdm3Xb9fSvquRPbaxNmTsVEbAX2921HGoN7fFyvuZjcel" +
+                    "?rdid=yFEXDIOjMWXMRAS2&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fp%2F1HCctWJmXS%2F",
+            ),
+        )
+    }
+
+    @Test
     fun facebook_detectsShortLinks() {
-        assertTrue(UrlCleaner.isFacebookShortLink("https://www.facebook.com/share/p/1AbCdEf/"))
-        assertTrue(UrlCleaner.isFacebookShortLink("https://www.facebook.com/share/r/1AbCdEf/"))
-        assertTrue(UrlCleaner.isFacebookShortLink("https://m.facebook.com/share/v/1AbCdEf/"))
-        assertTrue(UrlCleaner.isFacebookShortLink("https://www.facebook.com/share/1AbCdEf/"))
-        assertTrue(UrlCleaner.isFacebookShortLink("https://fb.watch/abcDEF/"))
-        assertFalse(UrlCleaner.isFacebookShortLink("https://www.facebook.com/user/posts/123"))
-        assertFalse(UrlCleaner.isFacebookShortLink("https://www.youtube.com/share/x"))
+        assertTrue(UrlCleaner.isShortLink("https://www.facebook.com/share/p/1AbCdEf/"))
+        assertTrue(UrlCleaner.isShortLink("https://www.facebook.com/share/r/1AbCdEf/"))
+        assertTrue(UrlCleaner.isShortLink("https://m.facebook.com/share/v/1AbCdEf/"))
+        assertTrue(UrlCleaner.isShortLink("https://www.facebook.com/share/1AbCdEf/"))
+        assertTrue(UrlCleaner.isShortLink("https://fb.watch/abcDEF/"))
+        assertFalse(UrlCleaner.isShortLink("https://www.facebook.com/user/posts/123"))
+        assertFalse(UrlCleaner.isShortLink("https://www.youtube.com/share/x"))
+    }
+
+    @Test
+    fun threadsAndInstagram_detectShortLinks() {
+        assertTrue(UrlCleaner.isShortLink("https://www.threads.com/share/DsVm_Dw35/"))
+        assertTrue(UrlCleaner.isShortLink("https://www.threads.net/share/DsVm_Dw35/"))
+        assertTrue(UrlCleaner.isShortLink("https://www.instagram.com/share/reel/BAxyz/"))
+        assertFalse(UrlCleaner.isShortLink("https://www.threads.com/@user/post/C9abc"))
+        assertFalse(UrlCleaner.isShortLink("https://www.instagram.com/reel/C9abc/"))
+    }
+
+    @Test
+    fun threads_cleansExpandedShareTarget() {
+        // Real Location header returned for a threads.com/share/ link.
+        assertEquals(
+            "https://www.threads.com/@mandy_ko0807/post/DevQ0b1IzEw",
+            clean("https://www.threads.com/@mandy_ko0807/post/DevQ0b1IzEw?xmt=AQG0EhuyTLTezKCKBJO-xl4M_dgnpoFqrkXa6XY6u6s_u3lpABDR8wt_hnzg-85Hh-DhvGU"),
+        )
     }
 
     @Test

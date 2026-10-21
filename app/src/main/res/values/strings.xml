@@ -21,8 +21,8 @@
     <string name="result_copy">複製</string>
 
     <string name="settings_title">偏好設定</string>
-    <string name="setting_expand_fb">Facebook 短網址還原</string>
-    <string name="setting_expand_fb_desc">連網展開 /share/ 與 fb.watch 短網址（不帶 Cookie）</string>
+    <string name="setting_expand_fb">短網址還原</string>
+    <string name="setting_expand_fb_desc">連網展開 Facebook / Threads / Instagram 的 /share/ 與 fb.watch 短網址（不帶 Cookie）</string>
     <string name="setting_shorts">YouTube Shorts 轉一般影片</string>
     <string name="setting_shorts_desc">將 /shorts/{id} 轉為 /watch?v={id}</string>
     <string name="setting_toast">額外顯示 Toast 提示</string>

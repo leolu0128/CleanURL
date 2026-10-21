@@ -292,8 +292,8 @@ private fun SettingsCard(settings: Settings, onChange: ((Settings) -> Settings) 
             SettingRow(
                 title = stringResource(R.string.setting_expand_fb),
                 description = stringResource(R.string.setting_expand_fb_desc),
-                checked = settings.expandFacebookShortLinks,
-                onCheckedChange = { value -> onChange { it.copy(expandFacebookShortLinks = value) } },
+                checked = settings.expandShortLinks,
+                onCheckedChange = { value -> onChange { it.copy(expandShortLinks = value) } },
             )
             HorizontalDivider(Modifier.padding(horizontal = 16.dp))
             SettingRow(

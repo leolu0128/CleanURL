@@ -11,13 +11,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class Settings(
-    val expandFacebookShortLinks: Boolean = true,
+    val expandShortLinks: Boolean = true,
     val convertShorts: Boolean = false,
     val toastOnAndroid13: Boolean = false,
 ) {
     fun toCleanOptions() = CleanOptions(
         convertShorts = convertShorts,
-        expandFacebookShortLinks = expandFacebookShortLinks,
+        expandShortLinks = expandShortLinks,
     )
 }
 
@@ -42,7 +42,7 @@ class AppPreferences private constructor(context: Context) {
     fun updateSettings(transform: (Settings) -> Settings) {
         val updated = transform(_settings.value)
         prefs.edit()
-            .putBoolean(KEY_EXPAND_FB, updated.expandFacebookShortLinks)
+            .putBoolean(KEY_EXPAND_FB, updated.expandShortLinks)
             .putBoolean(KEY_CONVERT_SHORTS, updated.convertShorts)
             .putBoolean(KEY_TOAST_13, updated.toastOnAndroid13)
             .apply()
@@ -79,7 +79,7 @@ class AppPreferences private constructor(context: Context) {
     }
 
     private fun loadSettings() = Settings(
-        expandFacebookShortLinks = prefs.getBoolean(KEY_EXPAND_FB, true),
+        expandShortLinks = prefs.getBoolean(KEY_EXPAND_FB, true),
         convertShorts = prefs.getBoolean(KEY_CONVERT_SHORTS, false),
         toastOnAndroid13 = prefs.getBoolean(KEY_TOAST_13, false),
     )

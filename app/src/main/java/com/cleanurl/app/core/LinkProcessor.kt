@@ -6,7 +6,7 @@ class LinkProcessor(private val unshortener: UrlUnshortener = UrlUnshortener()) 
     /** Returns null when [text] contains no URL. */
     suspend fun process(text: String, options: CleanOptions): CleanResult? {
         val url = UrlCleaner.extractUrl(text) ?: return null
-        val target = if (options.expandFacebookShortLinks && UrlCleaner.isFacebookShortLink(url)) {
+        val target = if (options.expandShortLinks && UrlCleaner.isShortLink(url)) {
             unshortener.expand(url) ?: url
         } else {
             url

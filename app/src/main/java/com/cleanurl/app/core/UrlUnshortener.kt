@@ -9,7 +9,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Expands Facebook share short links (`facebook.com/share/...`, `fb.watch/...`) by following
+ * Expands Meta share short links (Facebook / Threads / Instagram `/share/...`, `fb.watch/...`) by following
  * HTTP redirects by hand. No cookies are sent (no CookieHandler is installed), and any failure
  * or timeout yields null so callers can fall back to the original link.
  */
@@ -40,8 +40,8 @@ class UrlUnshortener(private val timeoutMs: Long = 3_000) {
                 if (code in 300..399) {
                     val location = connection.getHeaderField("Location") ?: return null
                     val next = URL(URL(current), location).toString()
-                    unwrapLoginRedirect(next)?.let { return it }
-                    if (!UrlCleaner.isFacebookShortLink(next)) return next
+                    if (isLoginRedirect(next)) return unwrapLoginRedirect(next)
+                    if (!UrlCleaner.isShortLink(next)) return next
                     current = next
                 } else if (code == HttpURLConnection.HTTP_OK) {
                     return readCanonicalUrl(connection)
@@ -57,11 +57,18 @@ class UrlUnshortener(private val timeoutMs: Long = 3_000) {
         return null
     }
 
-    /** Logged-out requests are often bounced to `/login/?next=<real post>`. */
-    private fun unwrapLoginRedirect(url: String): String? {
+    private fun isLoginRedirect(url: String): Boolean {
         val path = url.substringAfter("://").substringAfter('/', "").substringBefore('?')
-        if (!path.startsWith("login") && !path.startsWith("checkpoint")) return null
-        return UrlCleaner.queryParam(url, "next")?.takeIf { it.startsWith("http") }
+        return path.startsWith("login") || path.startsWith("checkpoint")
+    }
+
+    /**
+     * Logged-out requests are sometimes bounced to `/login/?next=<target>`. Only useful when
+     * `next` is the real post; if it is still the short link, the expansion failed.
+     */
+    private fun unwrapLoginRedirect(url: String): String? {
+        return UrlCleaner.queryParam(url, "next")
+            ?.takeIf { it.startsWith("http") && !UrlCleaner.isShortLink(it) }
     }
 
     /** Some share links answer 200 with the real URL only in `og:url` / canonical. */
@@ -79,15 +86,15 @@ class UrlUnshortener(private val timeoutMs: Long = 3_000) {
         val match = OG_URL.find(html) ?: CANONICAL.find(html) ?: return null
         return match.groupValues[1]
             .replace("&amp;", "&")
-            .takeIf { it.startsWith("http") && !UrlCleaner.isFacebookShortLink(it) }
+            .takeIf { it.startsWith("http") && !UrlCleaner.isShortLink(it) }
     }
 
     private companion object {
         const val MAX_REDIRECTS = 5
         const val MAX_HTML_BYTES = 512 * 1024
-        const val USER_AGENT =
-            "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) " +
-                "Chrome/126.0.0.0 Mobile Safari/537.36"
+        // Facebook answers 400 to browser-like UAs without a real browser's other headers, and
+        // sends the default Dalvik UA to a login page; a plain non-browser UA gets the 302 to the post.
+        const val USER_AGENT = "CleanURL/1.0"
         val OG_URL = Regex("""<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']""")
         val CANONICAL = Regex("""<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']""")
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
