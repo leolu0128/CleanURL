@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CleanURL</string>
+
+    <string name="toast_copied">✨ 已複製純淨連結</string>
+    <string name="toast_no_url">找不到可淨化的網址</string>
+    <string name="toast_clipboard_empty">剪貼簿裡沒有網址</string>
+    <string name="toast_copied_history">已複製</string>
+
+    <string name="clean_clipboard_title">一鍵淨化剪貼簿</string>
+    <string name="clean_clipboard_desc">不小心按了「複製連結」？點這裡就能淨化目前剪貼簿裡的網址。</string>
+    <string name="clean_clipboard_button">淨化剪貼簿</string>
+
+    <string name="manual_title">手動輸入 / 測試</string>
+    <string name="manual_hint">貼上包含網址的文字</string>
+    <string name="manual_button">淨化</string>
+    <string name="processing">處理中…</string>
+
+    <string name="result_title">淨化結果</string>
+    <string name="result_unchanged">網址已經是乾淨的</string>
+    <string name="result_copy">複製</string>
+
+    <string name="settings_title">偏好設定</string>
+    <string name="setting_expand_fb">Facebook 短網址還原</string>
+    <string name="setting_expand_fb_desc">連網展開 /share/ 與 fb.watch 短網址（不帶 Cookie）</string>
+    <string name="setting_shorts">YouTube Shorts 轉一般影片</string>
+    <string name="setting_shorts_desc">將 /shorts/{id} 轉為 /watch?v={id}</string>
+    <string name="setting_toast">額外顯示 Toast 提示</string>
+    <string name="setting_toast_desc">Android 13 以上已有系統剪貼簿預覽</string>
+    <string name="setting_toast_desc_old">Android 12 以下一律顯示 Toast</string>
+
+    <string name="history_title">最近淨化紀錄</string>
+    <string name="history_clear">清空</string>
+    <string name="history_empty">還沒有紀錄。在社群 App 按「分享 ➔ CleanURL」試試看！</string>
+</resources>
